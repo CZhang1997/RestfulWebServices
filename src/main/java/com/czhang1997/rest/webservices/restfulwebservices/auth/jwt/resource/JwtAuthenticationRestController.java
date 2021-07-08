@@ -1,5 +1,6 @@
 package com.czhang1997.rest.webservices.restfulwebservices.auth.jwt.resource;
 
+import com.czhang1997.rest.webservices.restfulwebservices.auth.jwt.JwtInMemoryUserDetailsService;
 import com.czhang1997.rest.webservices.restfulwebservices.auth.jwt.JwtTokenUtil;
 import com.czhang1997.rest.webservices.restfulwebservices.auth.jwt.JwtUserDetails;
 import org.slf4j.Logger;
@@ -14,6 +15,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -50,6 +52,21 @@ public class JwtAuthenticationRestController {
         return ResponseEntity.ok(new JwtTokenResponse(token));
     }
 
+    @RequestMapping(value = "/signup", method = RequestMethod.POST)
+    public ResponseEntity<?> signUp(@RequestBody JwtTokenRequest authenticationRequest)
+            throws AuthenticationException {
+//        new BCryptPasswordEncoder()
+        final UserDetails userDetails =
+                ((JwtInMemoryUserDetailsService)jwtInMemoryUserDetailsService)
+                .addNewUser(authenticationRequest.getUsername(),
+                        new BCryptPasswordEncoder().encode(authenticationRequest.getPassword()));
+//        final UserDetails userDetails = jwtInMemoryUserDetailsService.loadUserByUsername(authenticationRequest.getUsername());
+        final String token = jwtTokenUtil.generateToken(userDetails);
+
+        return ResponseEntity.ok(new JwtTokenResponse(token));
+//        return ResponseEntity.noContent().build();
+    }
+
     @RequestMapping(value = "${jwt.refresh.token.uri}", method = RequestMethod.GET)
     public ResponseEntity<?> refreshAndGetAuthenticationToken(HttpServletRequest request) {
         String authToken;
@@ -76,7 +93,6 @@ public class JwtAuthenticationRestController {
         Objects.requireNonNull(password);
 
         try {
-            logger.info("*********" + username + "*****" + password);
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
         } catch (DisabledException e) {
             throw new AuthenticationException("USER_DISABLED", e);
