@@ -1,17 +1,16 @@
 package com.czhang1997.rest.webservices.restfulwebservices.controllers;
 
+import com.czhang1997.rest.webservices.restfulwebservices.beans.AuthenticationBean;
 import com.czhang1997.rest.webservices.restfulwebservices.beans.HelloWorldBean;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:4200")
-public class HelloWorldController {
+public class AuthenticationController {
 
-    // GET
-//    @RequestMapping(method = RequestMethod.GET, path="/hello-world")
-    @GetMapping(path="/hello-world")
-    public String helloWorld(){
-        return "Hello World!";
+    @GetMapping(path="/basicAuth")
+    public AuthenticationBean authenticationCheck(){
+        return new AuthenticationBean("you are good");
     }
 
     // hello world bean
